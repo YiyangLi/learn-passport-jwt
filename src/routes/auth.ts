@@ -1,35 +1,21 @@
 import express, {Request, Response} from 'express';
 import connectDB from '../lib/connectDB';
 
-import {validPassword, issueJWT, genPassword} from '../lib/utils';
+import {issueJWT, genPassword, isAuth} from '../lib/utils';
 
-import {UserOdm} from '../models/User';
+import {UserOdm, User} from '../models/User';
+import passport from 'passport';
 
 const authRouter = express.Router();
 
 // Validate an existing user and issue a JWT
-authRouter.post('/login', async (req, res) => {
-  await connectDB();
-  const user = await UserOdm.findOne({username: req.body.username});
-  if (!user) {
-    return res.redirect('/login-failure');
-  }
-
-  // Function defined at bottom of app.js
-  const isValid = validPassword(req.body.password, user.hash, user.salt);
-
-  if (isValid) {
-    const tokenObject = issueJWT(user);
-
-    return res.send(`
-        <div>You successfully logged in. </div>
-        <div>Token: ${tokenObject.token} </div>
-        <div>Expiry: ${tokenObject.expires} </div>
-        `);
-  } else {
-    return res.redirect('/login-failure');
-  }
-});
+authRouter.post(
+  '/login',
+  passport.authenticate('local', {
+    failureRedirect: '/login-failure',
+    successRedirect: '/login-success',
+  })
+);
 
 // Register a new user
 authRouter.post('/register', async (req, res) => {
@@ -52,7 +38,7 @@ authRouter.post('/register', async (req, res) => {
 
   try {
     await newUser.save();
-    res.send(
+    return res.send(
       '<div>Registration done, click to <a href="/login">Login</a></div>'
     );
   } catch (err) {
@@ -61,7 +47,10 @@ authRouter.post('/register', async (req, res) => {
 });
 
 authRouter.get('/login', (req: Request, res: Response) => {
-  const form = `
+  if (req.isAuthenticated()) {
+    return res.redirect('/login-success');
+  } else {
+    const form = `
     <h1>Login Page</h1>
     <form method="POST" action="/login">
       User Name:<div><input placeholder="user@example.com" type="text" name="username"></div>
@@ -69,14 +58,34 @@ authRouter.get('/login', (req: Request, res: Response) => {
       <div><input type="submit" value="Submit"></div>
     </form>`;
 
-  res.send(form);
+    return res.send(form);
+  }
+});
+
+authRouter.get('/login-success', (req: Request, res: Response) => {
+  return res.send(`
+        <div>You successfully logged in. </div>
+        <div>click to <a href="/token">generate a token</a></div>
+        <div>click to <a href="/logout">logout</a></div>
+        `);
 });
 
 authRouter.get('/login-failure', (req: Request, res: Response) => {
-  res.send('You entered the wrong password.');
+  res.send(`
+    <div>Wrong Password </div>
+    <div>click to <a href="/login">retry</a></div>
+  `);
 });
 
-authRouter.get('/register', (req, res, next) => {
+authRouter.get('/token', isAuth, (req: Request, res: Response) => {
+  const tokenObject = issueJWT(req.user as User);
+  return res.send(`
+        <div>Token: ${tokenObject.token} </div>
+        <div>Expiry: ${tokenObject.expires} </div>
+        `);
+});
+
+authRouter.get('/register', (req: Request, res: Response) => {
   const form = `
     <h1>Register</h1>
     <form method="POST" action="/register">
@@ -87,6 +96,11 @@ authRouter.get('/register', (req, res, next) => {
     </form>`;
 
   res.send(form);
+});
+
+authRouter.get('/logout', (req: Request, res: Response) => {
+  req.logout(err => console.log(err));
+  res.redirect('/login');
 });
 
 export default authRouter;

@@ -1,3 +1,4 @@
+import {Request, Response, NextFunction} from 'express';
 import crypto from 'crypto';
 import jsonwebtoken from 'jsonwebtoken';
 import fs from 'fs';
@@ -21,7 +22,11 @@ const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
  * This function uses the crypto library to decrypt the hash using the salt and then compares
  * the decrypted hash/salt with the password that the user provided at login
  */
-export function validPassword(password: string, hash: string, salt: string) {
+export function validPassword(
+  password: string,
+  hash: string,
+  salt: string
+): boolean {
   const hashVerify = crypto
     .pbkdf2Sync(password, salt, 10000, 64, 'sha512')
     .toString('hex');
@@ -35,8 +40,6 @@ export function validPassword(password: string, hash: string, salt: string) {
  * This function takes a plain text password and creates a salt and hash out of it.  Instead of storing the plaintext
  * password in the database, the salt and hash are stored for security
  *
- * ALTERNATIVE: It would also be acceptable to just use a hashing algorithm to make a hash of the plain text password.
- * You would then store the hashed password in the database and then re-hash it to verify later (similar to what we do here)
  */
 export function genPassword(password: string) {
   const salt = crypto.randomBytes(32).toString('hex');
@@ -72,4 +75,12 @@ export const issueJWT = (user: User): {token: string; expires: string} => {
     token: 'Bearer ' + signedToken,
     expires: expiresIn,
   };
+};
+
+export const isAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    next();
+  } else {
+    res.status(401).json({msg: 'You are not authorized to view this resource'});
+  }
 };
