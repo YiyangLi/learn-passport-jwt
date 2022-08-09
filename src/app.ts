@@ -39,7 +39,7 @@ app.use(
   })
 );
 
-configurePassport();
+configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.json());

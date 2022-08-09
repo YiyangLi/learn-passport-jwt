@@ -1,8 +1,25 @@
+import {randomUUID} from 'crypto';
 // eslint-disable-next-line node/no-unpublished-import
 import request from 'supertest';
 import app from '../../../src/app';
 
 describe('authRoute', () => {
+  async function loginAsUser(): Promise<[request.Response, string]> {
+    return await request(app)
+      .post('/login')
+      .type('form')
+      .send({
+        username: 'david',
+        password: 'teamplayer',
+      })
+      .then(res => {
+        const cookies = res.headers['set-cookie'][0]
+          .split(',')
+          .map((item: string) => item.split(';')[0]);
+        const cookie = cookies.join(';');
+        return [res, cookie];
+      });
+  }
   describe('/login', () => {
     it('GET without session', async () => {
       const response = await request(app).get('/login');
@@ -11,36 +28,19 @@ describe('authRoute', () => {
     });
 
     it('POST /login successfully', async () => {
-      const login = await request(app).post('/login').type('form').send({
-        username: 'david',
-        password: 'teamplayer',
-      });
-
+      const login = (await loginAsUser())[0];
       expect(login.status).toBe(302);
       expect(login.text).toContain('Redirecting to /login-success');
     });
 
     it('GET with a session', async () => {
-      let cookie = '';
-      await request(app)
-        .post('/login')
-        .type('form')
-        .send({
-          username: 'david',
-          password: 'teamplayer',
-        })
-        .then(res => {
-          const cookies = res.headers['set-cookie'][0]
-            .split(',')
-            .map((item: string) => item.split(';')[0]);
-          cookie = cookies.join(';');
-        });
+      const cookie = (await loginAsUser())[1];
       const response = await request(app).get('/login').set('Cookie', cookie);
       expect(response.status).toBe(302);
       expect(response.text).toBe('Found. Redirecting to /login-success');
     });
 
-    it('POST /login with a wrong password', async () => {
+    it('POST with a wrong password', async () => {
       const response = await request(app).post('/login').type('form').send({
         username: 'david',
         password: 'teamplayer2',
@@ -54,26 +54,13 @@ describe('authRoute', () => {
     it('GET /token without a session', async () => {
       const response = await request(app).get('/token');
       expect(response.status).toBe(401);
-      expect(response.body.message).toBe(
-        'You are not authorized to view this resource'
+      expect(response.text).toContain(
+        '<div>You are not allowed to get a new token</div>'
       );
     });
 
     it('GET with a session', async () => {
-      let cookie = '';
-      await request(app)
-        .post('/login')
-        .type('form')
-        .send({
-          username: 'david',
-          password: 'teamplayer',
-        })
-        .then(res => {
-          const cookies = res.headers['set-cookie'][0]
-            .split(',')
-            .map((item: string) => item.split(';')[0]);
-          cookie = cookies.join(';');
-        });
+      const cookie = (await loginAsUser())[1];
       const response = await request(app).get('/token').set('Cookie', cookie);
       expect(response.status).toBe(200);
       const json = response.body;
@@ -82,7 +69,57 @@ describe('authRoute', () => {
     });
   });
 
-  it('GET /logout', async () => {
+  describe('/register', () => {
+    it('GET without a session', async () => {
+      const response = await request(app).get('/register');
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('<h1>Register</h1>');
+    });
+
+    it('GET with a session', async () => {
+      const cookie = (await loginAsUser())[1];
+      const response = await request(app)
+        .get('/register')
+        .set('Cookie', cookie);
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('<div>You login as david </div>');
+    });
+
+    it('POST to register and login', async () => {
+      const username = randomUUID();
+      const password = randomUUID();
+      const response = await request(app).post('/register').type('form').send({
+        username,
+        password,
+        tShirtSize: 'XL',
+        manager: 'jeff',
+      });
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Registration done');
+      const loginResponse = await request(app)
+        .post('/login')
+        .type('form')
+        .send({
+          username,
+          password,
+        });
+      expect(loginResponse.status).toBe(302);
+      expect(loginResponse.text).toContain('Redirecting to /login-success');
+    });
+
+    it('POST to register a duplicate user', async () => {
+      const response = await request(app).post('/register').type('form').send({
+        username: 'david',
+        password: randomUUID(),
+        tShirtSize: 'XL',
+        manager: 'jeff',
+      });
+      expect(response.status).toBe(400);
+      expect(response.text).toContain('choose a different username, please');
+    });
+  });
+
+  it('/logout GET', async () => {
     request(app).get('/logout').expect(302).expect('Location', '/login');
   });
 });

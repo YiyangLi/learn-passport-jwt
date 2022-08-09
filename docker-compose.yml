@@ -10,11 +10,28 @@ services:
       - dev
   
   mongo-seed:
-    build: ./mongo
+    build: ./docker/mongo
     depends_on:
       - mongodb
     networks:
       - dev
+  
+  server:
+    build: 
+      dockerfile: ./docker/express/Dockerfile
+      context: ./
+    environment:
+      - DB_STRING=mongodb://host.docker.internal:27017/learn-passport
+      - KEY_FOLDER=../../../keypair
+      - PUB_KEY_NAME=id_rsa.pub
+      - PRIV_KEY_NAME=id_rsa
+      - NODE_ENV=dev
+    depends_on:
+      - mongodb
+    networks:
+      - dev
+    ports:
+      - 3000:3000
 
 networks:
   dev:

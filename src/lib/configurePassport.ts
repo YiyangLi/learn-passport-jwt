@@ -1,4 +1,3 @@
-import passport from 'passport';
 import {Strategy as JwtStrategy, ExtractJwt} from 'passport-jwt';
 import {Strategy as LocalStrategy} from 'passport-local';
 import fs from 'fs';
@@ -6,9 +5,12 @@ import path from 'path';
 import {User, UserOdm} from '../models/User';
 import {validPassword} from './utils';
 import connectDB from './connectDB';
+import {PassportStatic as Passport} from 'passport';
+import errors from './errors';
 
 const keyFolder = process.env.KEY_FOLDER || '../../keypair';
-const pathToKey = path.join(__dirname, keyFolder, 'id_rsa.pub');
+const pubKeyName = process.env.PUB_KEY_NAME || 'id_rsa.pub';
+const pathToKey = path.join(__dirname, keyFolder, pubKeyName);
 const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
 const jwtOptions = {
@@ -22,14 +24,14 @@ const localOptions = {
   passwordField: 'password',
 };
 
-export default function () {
+export default function (passport: Passport) {
   passport.use(
     new JwtStrategy(jwtOptions, async (jwt_payload, done) => {
       await connectDB();
       UserOdm.findOne({_id: jwt_payload.sub})
         .then((user: User | null) => {
           if (!user) {
-            return done(undefined, false, {message: 'User isnot found.'});
+            return done(undefined, false, errors[404]);
           } else {
             return done(undefined, user);
           }
@@ -46,7 +48,7 @@ export default function () {
       UserOdm.findOne({username: username})
         .then((user: User | null) => {
           if (!user) {
-            return done(undefined, false, {message: 'User isnot found.'});
+            return done(undefined, false, errors[404]);
           } else {
             const isValid = validPassword(password, user.hash, user.salt);
             if (isValid) {

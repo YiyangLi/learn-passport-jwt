@@ -1,6 +1,8 @@
 process.env.DB_STRING = 'mongodb://localhost:27017/test';
 process.env.NODE_ENV = 'test';
 process.env.KEY_FOLDER = '../../keypair';
+process.env.PUB_KEY_NAME = 'id_rsa.pub';
+process.env.PRIV_KEY_NAME = 'id_rsa';
 process.env.PRIV_KEY = `
 -----BEGIN RSA PRIVATE KEY-----
 MIIJKQIBAAKCAgEAw2tFJiFjNXA2uaGTfVp248huLBsiLfIGMOxZmGuwqGxmU0JU

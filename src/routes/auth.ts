@@ -1,7 +1,7 @@
 import express, {Request, Response} from 'express';
 import connectDB from '../lib/connectDB';
 
-import {issueJWT, genPassword, isAuth} from '../lib/utils';
+import {issueJWT, genPassword} from '../lib/utils';
 
 import {UserOdm, User} from '../models/User';
 import passport from 'passport';
@@ -22,7 +22,7 @@ authRouter.post('/register', async (req, res) => {
   await connectDB();
   const user = await UserOdm.findOne({username: req.body.username});
   if (user) {
-    res.send('choose a different username, please');
+    res.status(400).send('choose a different username, please');
     return;
   }
   const saltHash = genPassword(req.body.password);
@@ -32,7 +32,7 @@ authRouter.post('/register', async (req, res) => {
 
   const newUser = new UserOdm({
     username: req.body.username,
-    tShirtSize: req.body.tshirtSize,
+    tShirtSize: req.body.tShirtSize,
     manager: req.body.manager,
     hash: hash,
     salt: salt,
@@ -67,6 +67,7 @@ authRouter.get('/login', (req: Request, res: Response) => {
 authRouter.get('/login-success', (req: Request, res: Response) => {
   return res.send(`
         <div>You successfully logged in. </div>
+        <div>username: ${(req.user! as User).username} </div>
         <div>click to <a href="/token">generate a token</a></div>
         <div>click to <a href="/logout">logout</a></div>
         `);
@@ -79,9 +80,16 @@ authRouter.get('/login-failure', (req: Request, res: Response) => {
   `);
 });
 
-authRouter.get('/token', isAuth, (req: Request, res: Response) => {
-  const tokenObject = issueJWT(req.user as User);
-  return res.status(200).json(tokenObject);
+authRouter.get('/token', (req: Request, res: Response) => {
+  if (req.isAuthenticated()) {
+    const tokenObject = issueJWT(req.user as User);
+    return res.status(200).json(tokenObject);
+  } else {
+    return res.status(401).send(`
+      <div>You are not allowed to get a new token</div>
+      <div>Click to <a href="/logout">logout</a>, login and try again.</div>
+    `);
+  }
 });
 
 authRouter.get('/register', (req: Request, res: Response) => {
