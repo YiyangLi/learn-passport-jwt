@@ -14,7 +14,7 @@
   "isAdmin": false,
   "hash": "634069dd933546ea8ddf70192a6a7927fcc9b2f42418636e410918b59e4824c450b23a0a20227f39aff1293d6cfe32253920d63fa1a26a895f0d0f3b37b7ff61",
   "salt": "58d6938e4d42db08584d38485148daeae688a56b3a585ad58b5e8943e8027f19",
-  "members": ["david"],
+  "members": ["62f18e9514cdfe460b4aef3d"],
   "tShirtSize": "L"
 }, {
   "_id": {"$oid": "62f18e9514cdfe460b4aef3d"},

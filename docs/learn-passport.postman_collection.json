@@ -1,0 +1,190 @@
+{
+	"info": {
+		"_postman_id": "0b8263f8-de9a-4045-b902-18146a405223",
+		"name": "learn-passport",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14769846"
+	},
+	"item": [
+		{
+			"name": "Create a new user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Set workspace id\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.environment.set(\"userId\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"Davie\",\n    \"password\": \"abcd\",\n    \"manager\": \"jeff\",\n    \"members\": [],\n    \"tShirtSize\": \"XXL\"\n}"
+				},
+				"url": {
+					"raw": "{{express_url}}/api/v1/users",
+					"host": [
+						"{{express_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update a user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Set workspace id\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.environment.set(\"userId\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"Davie\",\n    \"password\": \"abcd\",\n    \"manager\": \"jeff\",\n    \"members\": [],\n    \"tShirtSize\": \"M\"\n}"
+				},
+				"url": {
+					"raw": "{{express_url}}/api/v1/users/{{userId}}",
+					"host": [
+						"{{express_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all accessible Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{express_url}}/api/v1/users",
+					"host": [
+						"{{express_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a User By Id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{express_url}}/api/v1/users/{{userId}}",
+					"host": [
+						"{{express_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete user",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{express_url}}/api/v1/users/{{userId}}",
+					"host": [
+						"{{express_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MmYxOGU5NTE0Y2RmZTQ2MGI0YWVmM2IiLCJpYXQiOjE2NjAwMzk2MjM1ODMsImV4cCI6MTY2MDAzOTcwOTk4M30.KrMEI9xb6sIWIy31_DZBRw8tEmu92NaPG7nr67AIwUTdLshDAfgqUNG4SgoWqGfYNeuuPkAN1MR5-AQGPjB1m6vV-Uf4aLx_g5IvsJBFlQiFdy8Kh4hLyEbLu_N_-IEEZ6id7ZOI-YrWfkCy18WmaGyJHu_oTHm0yI1b0ECT58ykXAezoTVdNZn82WDCxxH3yQTaGD1jJyjVqYUXLD2aAX49L1Js7pLMsIz5tYHn8gpRUHNHjw4gSYpIxA89lZ3XasEm8WG_11xHpgpq7VbLvqxQJZBY7zSDo7r5NnAxLfhp8Gg-wOc53fDJB30DMFd0id9qNtYekKskfo5y-KLIjmTZcU8jhOgMf3Iy7Z6km0j5JE34SPKCF-dsl-5zPK0eLZytMsF7PWxyuM8ifl6jxqKkcexCAMwE1sdbsTJ6r-yDFX88EKv_ySUklayUHOu0Xwc38rkYSXHhwWt_L1k1kr6bndh2Z_DtX8Tiw7I6HMU8HgH04SyAXTO25LSzQOouAjTHT1EcTz8FMKE_giecHQLDIr_A4keH8WTDB51J-B2UghqD87H8aCCl1F0JABHiiyU779ySzznFYxqv6xunrStlZ4_DGnxOh9YOyPhBV3FT3YkMo7irPk7wMahbxlXveLe0zWxCSYdEckhUTybP1PXbBaxjBp2LIbiDFdlFBLE",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

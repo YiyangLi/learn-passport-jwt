@@ -1,16 +1,5 @@
-import {Schema, model, Types} from 'mongoose';
-
-interface IUser {
-  username: string;
-  tShirtSize: string;
-  isAdmin: boolean;
-  members: string[];
-  manager: string;
-  hash: string;
-  salt: string;
-  createdAt: Date;
-  lastUpdated: Date;
-}
+import {Schema, model} from 'mongoose';
+import {IUser} from './types';
 
 const userSchema = new Schema<IUser>({
   username: {type: String, required: true},
@@ -23,9 +12,5 @@ const userSchema = new Schema<IUser>({
   hash: {type: String, required: true},
   salt: {type: String, required: true},
 });
-
-export type User = IUser & {
-  _id: Types.ObjectId;
-};
 
 export const UserOdm = model<IUser>('User', userSchema);

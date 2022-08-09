@@ -3,8 +3,10 @@ import connectDB from '../lib/connectDB';
 
 import {issueJWT, genPassword} from '../lib/utils';
 
-import {UserOdm, User} from '../models/User';
+import {User} from '../models/types';
+import {UserOdm} from '../models/User';
 import passport from 'passport';
+import errors from '../lib/errors';
 
 const authRouter = express.Router();
 
@@ -20,9 +22,13 @@ authRouter.post(
 // Register a new user
 authRouter.post('/register', async (req, res) => {
   await connectDB();
+  if (!req.body.password || !req.body.username) {
+    res.status(400).send(errors[400].message);
+    return;
+  }
   const user = await UserOdm.findOne({username: req.body.username});
   if (user) {
-    res.status(400).send('choose a different username, please');
+    res.status(409).send(errors[409].message);
     return;
   }
   const saltHash = genPassword(req.body.password);

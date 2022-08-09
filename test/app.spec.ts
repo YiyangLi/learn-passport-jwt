@@ -4,5 +4,5 @@ import app from '../src/app';
 
 it('Hello world', async () => {
   const result = await request(app).get('/');
-  expect(result.text).toBe('Hello World!');
+  expect(result.text).toContain('<div><a href="/login">Login</a></div>');
 });

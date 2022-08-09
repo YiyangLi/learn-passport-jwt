@@ -1,5 +1,5 @@
 import {genPassword, validPassword, issueJWT} from '../../../src/lib/utils';
-import {User} from '../../../src/models/User';
+import {User} from '../../../src/models/types';
 
 describe('genPassword', () => {
   it('generates a password', () => {

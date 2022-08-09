@@ -62,6 +62,15 @@ interface IUser {
 }
 ```
 
+## API Docs
+It's recommended to include an OpenAPI 3.0 under [docs](/docs/).
+GET `/api/v1/users` get all users
+POST `/api/v1/users` Create a new user
+PUT `/api/v1/users/:userId` Update a user
+DELETE `/api/v1/users/:userId` Delete a user
+
+[A postman collection](/docs/learn-passport.postman_collection.json) is added for sample inputs. The integration tests may help.
+
 ## Bootstrap
 You are encouraged to use `docker-compose up -d` to run mongoDB in a docker-container. There is a *SQL-Migration* included in [mongo](/mongo/init.json) used to seed data.
 
@@ -96,13 +105,30 @@ node keypair/generateKeyPair.js
 
 ### Coverage
 
+|File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               |
+|-----------------------|---------|----------|---------|---------|---------------------------------|
+All files              |   93.38 |    71.42 |     100 |   93.38 |                                 
+ src                   |   88.88 |       25 |     100 |   88.88 |                                 
+  app.ts               |   88.88 |       25 |     100 |   88.88 | 13-14,55-57,60-61               
+ src/lib               |   97.74 |    74.19 |     100 |   97.74 |                                 
+  configurePassport.ts |   95.06 |    71.42 |     100 |   95.06 | 35,41,52,63                     
+  connectDB.ts         |     100 |       50 |     100 |     100 | 4                               
+  errors.ts            |     100 |      100 |     100 |     100 |                                 
+  utils.ts             |   98.75 |       80 |     100 |   98.75 | 15-16                           
+ src/models            |     100 |      100 |     100 |     100 |                                 
+  User.ts              |     100 |      100 |     100 |     100 |                                 
+ src/routes            |   89.61 |       75 |     100 |   89.61 |                                 
+  auth.ts              |   86.61 |    81.81 |     100 |   86.61 | 26-28,53-54,74-79,83-86,123-124 
+  users.ts             |   92.48 |    70.58 |     100 |   92.48 | 43,61,73-75,78-80,99-100        
+
 
 ### Unit tests
 ### Integration tests
 The tests under [integrations](/test/integration) requires you spin up a MongoDB. Sample data used for testing will be added to the database called test -- `'mongodb://localhost:27017/test'`
 To verify the setup is bootstraped, simply run: 
+
 ```bash
-> jest -- User.spec.ts
+> jest -- UserModel.spec.ts
 ```
 
 If you have a diffent mongodb address, please update the address under the [setup-test.ts](/test/app.spec.ts)
@@ -114,6 +140,7 @@ process.env.NODE_ENV = 'test';
 ## Limitations
 Due to the limited time, the following features are not implemented.
 
+- Under the register flow, the user can specify the manager (but not members). This is the only chance for them to set their manager. An admin can use api to create a user, where they can specify the new user's members and manager.
 - Members / Manager update, it can be performed by an admin only. And the admin has to complete it by multiple update requests. For example, to update John's manager from Sam to Jeff, the admin needs to remove John from Sam's `members` list, add John to Jeff's `members` list and lastly update John's `manager` field to Jeff.
 - A member's member is also their manager's member. A manager's manager is also their manager. It's a tree. However, the permission checking doesn't recursively get to the root node or leaf node. For example, Jeff manages Tim, Tim manages Sam, Sam is a also member of Jeff, and Jeff is also Sam's manager. However, in the simplified model, Jeff and Sam are not related.
 - When a user is deleted, the admin has to take care of their members or manager, in order to unlink the relationship.

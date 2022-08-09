@@ -3,7 +3,7 @@ import {randomUUID} from 'crypto';
 import request from 'supertest';
 import app from '../../../src/app';
 
-describe('authRoute', () => {
+describe('authRoutes', () => {
   async function loginAsUser(): Promise<[request.Response, string]> {
     return await request(app)
       .post('/login')
@@ -114,8 +114,10 @@ describe('authRoute', () => {
         tShirtSize: 'XL',
         manager: 'jeff',
       });
-      expect(response.status).toBe(400);
-      expect(response.text).toContain('choose a different username, please');
+      expect(response.status).toBe(409);
+      expect(response.text).toContain(
+        'Duplicated username, please choose a different one.'
+      );
     });
   });
 

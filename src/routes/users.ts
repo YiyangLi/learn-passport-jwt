@@ -1,9 +1,16 @@
-import express, {NextFunction, Request, Response} from 'express';
+import express, {Request, Response} from 'express';
 import _ from 'lodash';
 import passport from 'passport';
 import errors from '../lib/errors';
-import {canDeleteUser, canUpdateUser, canViewUser} from '../lib/utils';
-import {User, UserOdm} from '../models/User';
+import {
+  canCreateUser,
+  canDeleteUser,
+  canUpdateUser,
+  canViewUser,
+  genPassword,
+} from '../lib/utils';
+import {User} from '../models/types';
+import {UserOdm} from '../models/User';
 
 const usersRouter = express.Router();
 
@@ -11,14 +18,18 @@ const usersRouter = express.Router();
 usersRouter.get(
   '/api/v1/users',
   passport.authenticate('jwt', {session: true}),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const requester = req.user as User;
-    const filter = requester.isAdmin
-      ? {}
-      : {username: [requester.username, ...requester.members]};
-    UserOdm.find(filter).then((users: User[]) => {
-      res.status(200).json(users.map(u => formatUser(u)));
-    });
+    let users: User[] = [];
+    if (requester.isAdmin) {
+      users = await UserOdm.find().exec();
+    } else {
+      users = await UserOdm.find()
+        .where('_id')
+        .in([requester._id, ...requester.members])
+        .exec();
+    }
+    res.status(200).json(users.map(formatUser));
   }
 );
 
@@ -42,9 +53,9 @@ usersRouter.delete(
   passport.authenticate('jwt', {session: false}),
   canDeleteUser,
   (req: Request, res: Response) => {
-    UserOdm.deleteOne({_id: req.params.userId})
+    UserOdm.findByIdAndDelete(req.params.userId)
       .then(() => {
-        res.status(204);
+        res.status(204).json();
       })
       .catch(() => {
         res.status(501).json(errors[500]);
@@ -52,18 +63,41 @@ usersRouter.delete(
   }
 );
 
-usersRouter.delete(
-  '/api/v1/users/:userId',
+usersRouter.post(
+  '/api/v1/users',
   passport.authenticate('jwt', {session: false}),
-  canDeleteUser,
-  (req: Request, res: Response) => {
-    UserOdm.deleteOne({_id: req.params.userId})
-      .then(() => {
-        res.status(204);
-      })
-      .catch(() => {
-        res.status(501).json(errors[500]);
-      });
+  canCreateUser,
+  async (req: Request, res: Response) => {
+    // Todo: duped from authRoutes, clean it up later.
+    if (!req.body.password || !req.body.username) {
+      res.status(400).json(errors[400]);
+      return;
+    }
+    const user = await UserOdm.findOne({username: req.body.username});
+    if (user) {
+      res.status(409).json(errors[409]);
+      return;
+    }
+    const saltHash = genPassword(req.body.password);
+
+    const salt = saltHash.salt;
+    const hash = saltHash.hash;
+
+    const newUser = new UserOdm({
+      username: req.body.username,
+      tShirtSize: req.body.tShirtSize,
+      manager: req.body.manager,
+      members: req.body.members,
+      hash: hash,
+      salt: salt,
+    });
+
+    try {
+      const user = await newUser.save();
+      return res.status(200).json(formatUser(user));
+    } catch (err) {
+      return res.status(500).json(errors[500]);
+    }
   }
 );
 
@@ -72,23 +106,16 @@ usersRouter.put(
   passport.authenticate('jwt', {session: false}),
   canUpdateUser,
   async (req: Request, res: Response) => {
-    const requester = req.body.user as User;
+    const requester = req.user as User;
     const profileToUpdate = requester.isAdmin
       ? _.pick(req.body, 'tShirtSize', 'members', 'manager')
       : _.pick(req.body, 'tShirtSize');
-    const updated = await UserOdm.updateOne(
-      {_id: req.params.userId},
-      profileToUpdate
-    ).exec();
+    await UserOdm.updateOne({_id: req.params.userId}, profileToUpdate).exec();
 
-    if (updated.modifiedCount) {
-      const updatedUser = await UserOdm.findOne({
-        _id: req.params.userId,
-      }).exec();
-      res.status(200).json(formatUser(updatedUser!));
-    } else {
-      res.status(200).json({});
-    }
+    const updatedUser = await UserOdm.findOne({
+      _id: req.params.userId,
+    }).exec();
+    res.status(200).json(formatUser(updatedUser!));
   }
 );
 

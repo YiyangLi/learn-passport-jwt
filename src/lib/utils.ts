@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
-import {User} from '../models/User';
+import {User} from '../models/types';
 import {NextFunction, Request, Response} from 'express';
 
 const notAuthorized = {

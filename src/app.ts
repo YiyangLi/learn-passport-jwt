@@ -17,7 +17,12 @@ const app: Application = express();
 const port = process.env.PORT || 3000;
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
+  res.send(`
+    <div><a href="/login">Login</a></div>
+    <div><a href="/register">Register</a></div>
+    <div><a href="/token">Generate a Token</a></div>
+    <div><a href="/logout">Logout</a></div>
+  `);
 });
 
 const conn =
