@@ -22,7 +22,8 @@ authRouter.post('/register', async (req, res) => {
   await connectDB();
   const user = await UserOdm.findOne({username: req.body.username});
   if (user) {
-    return res.send('choose a different username, please');
+    res.send('choose a different username, please');
+    return;
   }
   const saltHash = genPassword(req.body.password);
 
@@ -31,7 +32,8 @@ authRouter.post('/register', async (req, res) => {
 
   const newUser = new UserOdm({
     username: req.body.username,
-    tshirtSize: req.body.tshirtSize,
+    tShirtSize: req.body.tshirtSize,
+    manager: req.body.manager,
     hash: hash,
     salt: salt,
   });
@@ -42,7 +44,7 @@ authRouter.post('/register', async (req, res) => {
       '<div>Registration done, click to <a href="/login">Login</a></div>'
     );
   } catch (err) {
-    return res.json({success: false, msg: err});
+    return res.json({success: false, message: err});
   }
 });
 
@@ -79,23 +81,28 @@ authRouter.get('/login-failure', (req: Request, res: Response) => {
 
 authRouter.get('/token', isAuth, (req: Request, res: Response) => {
   const tokenObject = issueJWT(req.user as User);
-  return res.send(`
-        <div>Token: ${tokenObject.token} </div>
-        <div>Expiry: ${tokenObject.expires} </div>
-        `);
+  return res.status(200).json(tokenObject);
 });
 
 authRouter.get('/register', (req: Request, res: Response) => {
-  const form = `
+  if (req.isAuthenticated()) {
+    res.send(`
+      <div>You login as ${(req.user as User).username} </div>
+      <div>To register a new user, click to <a href="/logout">logout</a></div>
+    `);
+  } else {
+    const form = `
     <h1>Register</h1>
     <form method="POST" action="/register">
       User Name:<div><input placeholder="user@example.com" type="text" name="username"></div>
       Password: <div><input type="password" name="password"></div>
-      T-shirt Size: <div><input type="text" placeholder="S/M/L/XL" name="tshirtSize"></div>
+      T-shirt Size: <div><input type="text" placeholder="S/M/L/XL" name="tShirtSize"></div>
+      Manager: <div><input type="text" placeholder="Your Manager's username" name="manager"></div>
       <div><input type="submit" value="Submit"></div>
     </form>`;
 
-  res.send(form);
+    res.send(form);
+  }
 });
 
 authRouter.get('/logout', (req: Request, res: Response) => {

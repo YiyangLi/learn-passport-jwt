@@ -6,22 +6,30 @@ import bodyParser from 'body-parser';
 import configurePassport from './lib/configurePassport';
 import passport from 'passport';
 import MongoStore from 'connect-mongo';
+import dotenv from 'dotenv';
+
+const isTestEnv = process.env.NODE_ENV === 'test';
+if (!isTestEnv) {
+  dotenv.config();
+}
 
 const app: Application = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
-const conn = process.env.DB_STRING || 'mongodb://localhost:27017/abcd';
+const conn =
+  process.env.DB_STRING || 'mongodb://localhost:27017/learn-passport';
+const secret = process.env.SECRET || 'secret';
 const sessionStore = new MongoStore({
   mongoUrl: `${conn}`,
 });
 
 app.use(
   session({
-    secret: 'secret',
+    secret,
     resave: false,
     saveUninitialized: true,
     store: sessionStore,
@@ -36,12 +44,15 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(authRouter);
+app.use(usersRouter);
 app.use((req, res, next) => {
   console.log(req.session);
   console.log(req.user);
   next();
 });
-app.use(authRouter);
-app.use(usersRouter);
+if (!isTestEnv) {
+  app.listen(port, () => console.log(`Listening on port ${port}`));
+}
 
-app.listen(port);
+export default app;

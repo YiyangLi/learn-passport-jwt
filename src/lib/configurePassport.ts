@@ -7,7 +7,8 @@ import {User, UserOdm} from '../models/User';
 import {validPassword} from './utils';
 import connectDB from './connectDB';
 
-const pathToKey = path.join(__dirname, '../../../keypair', 'id_rsa.pub');
+const keyFolder = process.env.KEY_FOLDER || '../../keypair';
+const pathToKey = path.join(__dirname, keyFolder, 'id_rsa.pub');
 const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
 const jwtOptions = {
@@ -48,7 +49,6 @@ export default function () {
             return done(undefined, false, {message: 'User isnot found.'});
           } else {
             const isValid = validPassword(password, user.hash, user.salt);
-
             if (isValid) {
               return done(null, user);
             } else {

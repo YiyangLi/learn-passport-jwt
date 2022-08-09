@@ -1,5 +1,28 @@
 [{
-  "name": "abcd"
+  "_id": {"$oid": "62f18e9514cdfe460b4aef3b"},
+  "username": "admin",
+  "manager": "",
+  "isAdmin": true,
+  "hash": "2e708c631e6543605bdbca75fc2fd437ca4de66ea83e4994667b55166fb59338a3cac241c0d6cff0afb7085fe48f306fe52ea1c08f9586334cdfbf9affe6c06a",
+  "salt": "d881ee38fa503fe1a85541a5d7e2ff5b9e2cec12da507cfaaee5d5ae164eb47f",
+  "members": [],
+  "tShirtSize": "XXL"
 }, {
-  "name": "deba"
+  "_id": {"$oid": "62f18e9514cdfe460b4aef3c"},
+  "username": "jeff",
+  "manager": "",
+  "isAdmin": false,
+  "hash": "634069dd933546ea8ddf70192a6a7927fcc9b2f42418636e410918b59e4824c450b23a0a20227f39aff1293d6cfe32253920d63fa1a26a895f0d0f3b37b7ff61",
+  "salt": "58d6938e4d42db08584d38485148daeae688a56b3a585ad58b5e8943e8027f19",
+  "members": ["david"],
+  "tShirtSize": "L"
+}, {
+  "_id": {"$oid": "62f18e9514cdfe460b4aef3d"},
+  "username": "david",
+  "manager": "jeff",
+  "isAdmin": false,
+  "hash": "d8771d82d80a5cc96d1a2a400a0f43ddd7cc56420f9ea4013643a04f34a2d3cb3cfc2a20fb6ffcd8a3f7727ea25ec081988647c57af6b6f48deeb0f33a46c395",
+  "salt": "46ceb749ff040a7c6fb3bf4220787b76b0cf6998cd9566b97ee3057dc9a6bdd2",
+  "members": [],
+  "tShirtSize": "M"
 }]

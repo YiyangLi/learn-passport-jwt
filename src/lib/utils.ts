@@ -3,10 +3,15 @@ import crypto from 'crypto';
 import jsonwebtoken from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 
 import {User} from '../models/User';
-
-const pathToKey = path.join(__dirname, '../../../keypair', 'id_rsa');
+const isTestEnv = process.env.NODE_ENV === 'test';
+if (!isTestEnv) {
+  dotenv.config();
+}
+const keyFolder = process.env.KEY_FOLDER || '../../keypair';
+const pathToKey = path.join(__dirname, keyFolder, 'id_rsa');
 const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
 
 /**
@@ -56,7 +61,10 @@ export function genPassword(password: string) {
 /**
  * @param {*} user - The user object.  We need this to set the JWT `sub` payload property to the MongoDB user ID
  */
-export const issueJWT = (user: User): {token: string; expires: string} => {
+export const issueJWT = (
+  user: User,
+  privateKey: string = PRIV_KEY
+): {token: string; expires: string} => {
   const _id = user._id;
 
   const expiresIn = '1d';
@@ -66,7 +74,7 @@ export const issueJWT = (user: User): {token: string; expires: string} => {
     iat: Date.now(),
   };
 
-  const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
+  const signedToken = jsonwebtoken.sign(payload, privateKey, {
     expiresIn: expiresIn,
     algorithm: 'RS256',
   });
@@ -81,6 +89,8 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
     next();
   } else {
-    res.status(401).json({msg: 'You are not authorized to view this resource'});
+    res
+      .status(401)
+      .json({message: 'You are not authorized to view this resource'});
   }
 };

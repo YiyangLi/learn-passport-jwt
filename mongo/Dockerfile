@@ -1,5 +1,5 @@
 FROM mongo
 
 COPY init.json /init.json
-RUN sleep 10
-RUN mongoimport --host mongodb --db reach-engine --collection MyDummyCollection --type json --file /init.json --jsonArray
+CMD mongoimport --host mongodb --db learn-passport --collection users --type json --file /init.json --jsonArray && \
+  mongoimport --host mongodb --db test --collection users --type json --file /init.json --jsonArray

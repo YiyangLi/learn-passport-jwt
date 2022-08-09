@@ -1,3 +1,7 @@
+process.env.DB_STRING = 'mongodb://localhost:27017/test';
+process.env.NODE_ENV = 'test';
+process.env.KEY_FOLDER = '../../keypair';
+process.env.PRIV_KEY = `
 -----BEGIN RSA PRIVATE KEY-----
 MIIJKQIBAAKCAgEAw2tFJiFjNXA2uaGTfVp248huLBsiLfIGMOxZmGuwqGxmU0JU
 ppHj+2SAq8kwMQRqmL9JUtTSOMoQzcy4TAZEDH8P8aHI4hzYFmdzTsNqaymOkf7o
@@ -49,3 +53,4 @@ ON9aP8Y0XpTWTY5YiecrwYKXK/+brv/Hr+r9b5UzL0HsyIUvnfYRFAutv1ABbMS8
 8K1T5K11NCbwbDgCP2PYFupMvtxHudqOeIyYNBUN8qDUWnLurAKJM2dH8UrVKSJt
 a2KgjFqyrHq672S7oUOH2ddbnsZcL8fDV9mWWhmUPSEdjBpxukSpoGsrFfBg
 -----END RSA PRIVATE KEY-----
+`;

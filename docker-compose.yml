@@ -6,8 +6,17 @@ services:
     image: mongo:latest
     ports:
       - 27017:27017
+    networks:
+      - dev
   
   mongo-seed:
     build: ./mongo
     depends_on:
       - mongodb
+    networks:
+      - dev
+
+networks:
+  dev:
+    name: dev
+    driver: bridge
