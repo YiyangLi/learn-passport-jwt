@@ -1,7 +1,7 @@
 # Learn Passport JS
 ## Requirements
 
-In an Organisation there are 3 roles
+In an Organization there are 3 roles
 
 - Admin
 - Supervisor
@@ -16,28 +16,31 @@ Employee will be able to only view / update info of themselves
 - Use NodeJS, ExpressJS and PassportJS
 
 ## Installation
+
 You can run everything in docker containers.
 
-```
+```bash
 docker-compose up
 ```
 
-You can also run the server directly in node if you have a MongoDB locally.
-```
+You can also run the server directly by node if you have a MongoDB locally.
+
+```bash
 npm install
 npm run start
 ```
 
-If you don't have a MongoDB, you can just run it in a docker container, with some bootstrapped data.
+If you don't have MongoDB, you can just run it in a docker container, with some bootstrapped data.
 
 ```bash
 docker-compose up -d mongo-seed
 ```
 
 ### Environment variables
-[dotenv](https://www.npmjs.com/package/dotenv) is used to read the envirionment variables from `.env`. However, the file is ignored in git. The following is the sample setup. They're included in [docker-compose.yml](/docker-compose.yml). You don't need to worry about them if you run them in docker containers. 
 
-```
+[dotenv](https://www.npmjs.com/package/dotenv) is used to read the envirionment variables from the file `.env`. However, the file is ignored in git. The following is the sample setup. They're also included in [docker-compose.yml](/docker-compose.yml). You don't need to worry about them if you run the server in a docker container.
+
+```bash
 DB_STRING=mongodb://localhost:27017/learn-passport
 KEY_FOLDER=../../../keypair
 PUB_KEY_NAME=id_rsa.pub
@@ -46,6 +49,7 @@ NODE_ENV=dev
 ```
 
 ## User Schema
+
 To simplify the problem, the user profile is very simple.
 
 ```typescript
@@ -63,7 +67,9 @@ interface IUser {
 ```
 
 ## API Docs
-It's recommended to include an OpenAPI 3.0 under [docs](/docs/).
+
+I would include an OpenAPI 3.0 under [docs](/docs/) if I have more time.
+
 GET `/api/v1/users` get all users
 POST `/api/v1/users` Create a new user
 PUT `/api/v1/users/:userId` Update a user
@@ -72,14 +78,16 @@ DELETE `/api/v1/users/:userId` Delete a user
 [A postman collection](/docs/learn-passport.postman_collection.json) is added for sample inputs. The integration tests may help.
 
 ## Bootstrap
-You are encouraged to use `docker-compose up -d` to run mongoDB in a docker-container. There is a *SQL-Migration* included in [mongo](/mongo/init.json) used to seed data.
 
-To bootstrap the data, use the following command.
+You are encouraged to use `docker-compose up -d` to run mongoDB in a docker-container. There is a *SQL-Migration* included in [mongo](/docker/mongo/init.json) used to create seed data.
+
+To create see the data, use `mongoimport`.
+
 ```bash
 mongoimport --host mongodb --db learn-passport --collection users --type json --file /init.json --jsonArray
 ```
 
-Here's sample users
+Here are the sample users
 
 | username | Role       | Password | ReportTo
 |:--------|:-----------|:-------------------------------------------------------------------------------| -- |
@@ -88,7 +96,7 @@ Here's sample users
 | david | user | `teamplayer` | jeff |
 
 ## Tests
-[Jest](https://jestjs.io/) is the test framework. And supertest is used to spin up a server at port 0, and run the api/integration tests.
+[Jest](https://jestjs.io/) is the test framework. And [supertest](https://www.npmjs.com/package/supertest) is used to spin up a server, and run the api/integration tests.
 
 ```bash
 > jest --version
@@ -96,9 +104,11 @@ Here's sample users
 ```
 
 ### JWT, RSA Public Key and Private Key
-In order to use JWT and issue a JWT, a pair of private key and public key is used. I have included a pair under the folder [keypair](/keypair). It's never the right practice to upload a private key to Github. Since it's been exposed publicly, please do not use it for production.
+
+In order to use JWT and issue a token, a pair of private key and public key is used. I have included a pair under the folder [keypair](/keypair). It's never the right practice to upload a private key to Github. Since it's been exposed publicly, please do not use it for production.
 
 You can also generate a new pair using [the JavaScript Snippet](/keypair/generateKeypair.js).
+
 ```base
 node keypair/generateKeyPair.js
 ```
@@ -121,11 +131,13 @@ All files              |   93.38 |    71.42 |     100 |   93.38 |
   auth.ts              |   86.61 |    81.81 |     100 |   86.61 | 26-28,53-54,74-79,83-86,123-124 
   users.ts             |   92.48 |    70.58 |     100 |   92.48 | 43,61,73-75,78-80,99-100        
 
-
 ### Unit tests
+Unit tests don't rely on MongoDB.
+
 ### Integration tests
-The tests under [integrations](/test/integration) requires you spin up a MongoDB. Sample data used for testing will be added to the database called test -- `'mongodb://localhost:27017/test'`
-To verify the setup is bootstraped, simply run: 
+The tests under [integrations](/test/integration) rely on MongoDB. Sample data used for testing will be added to the test database -- `'mongodb://localhost:27017/test'`
+
+To verify the setup is correctly configured, simply run:
 
 ```bash
 > jest -- UserModel.spec.ts
